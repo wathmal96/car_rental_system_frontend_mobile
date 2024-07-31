@@ -8,6 +8,8 @@ import { Text, View } from "react-native";
 import Drawer from "./src/screens/Drawer/Drawer";
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ModalScreen } from "./src/components/FullScreenModal/FullScreenModal";
+// import RootStackScreen from "./src/components/FullScreenModal/FullScreenModal";
 
 const Stack = createStackNavigator();
 
@@ -43,9 +45,15 @@ function App() {
           <Stack.Screen options={{ headerShown: false }} name="Login" component={Login} />
         }
         <Stack.Screen options={{ headerShown: false }} name="Drawer" component={Drawer} />
+        <Stack.Screen options={{ headerShown: false }} name="Login2" component={Login} />
         <Stack.Screen options={{ headerShown: false }} name="Registre" component={Registre} />
+        <Stack.Screen options={{ headerShown: false }} name="ModalScreen" component={ModalScreen} />
       </Stack.Navigator>
     </NavigationContainer>
+
+    // <NavigationContainer>
+    //   <RootStackScreen />
+    // </NavigationContainer>
 
   )
 }

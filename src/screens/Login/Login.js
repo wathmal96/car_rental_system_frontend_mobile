@@ -1,45 +1,60 @@
 import React, { useState } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, Alert } from "react-native";
 import { TextInput, Button, useTheme } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import createAxiosInstance from "../../service/axiosOrder";
-import axios from "axios";
 
 export default function Login() {
     const [name, setName] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false); // Add loading state
     const navigation = useNavigation();
     const theme = useTheme();
 
     const login = async () => {
-        console.log("Name:", name);
-        console.log("Password:", password);
+        if (!name || !password) {
+            Alert.alert("Validation Error", "Please enter both email and password.");
+            return;
+        }
+
+        setLoading(true); // Set loading to true before the request
 
         try {
             const axiosInstance = await createAxiosInstance();
-
             const response = await axiosInstance.post('/customer/authenticate', {
-                name:name,
-                password:password,
-                roles:"customer"
+                name: name,
+                password: password,
+                roles: "customer"
             });
-            console.log(response.data);
 
-           const { token, email } = response.data;
-            console.log("Token:", token);
-            console.log("name:", name);
-            console.log("email:", email);
+            const { token, email, id: idNumber } = response.data;
+            const id = String(idNumber); // Convert id to a string
 
             await AsyncStorage.multiSet([
                 ['login', token],
-                ['name',name],
-                ['mail',email]
+                ['name', name],
+                ['mail', email],
+                ['id', id]
             ]);
 
             navigation.navigate("Drawer");
         } catch (error) {
-            console.error("Error during login:", error);
+            // console.error("Error during login:", error);
+
+            // Handle different types of errors
+            if (error.response) {
+                // Server responded with a status other than 2xx
+                Alert.alert("Login Error", error.response.data.message || "An error occurred during login.");
+            } else if (error.request) {
+                // No response was received
+                Alert.alert("Network Error", "No response received from the server. Please try again later.");
+            } else {
+                // Other errors
+                Alert.alert("Error", "An unexpected error occurred. Please try again.");
+            }
+        } finally {
+            setLoading(false); // Reset loading state
         }
     };
 
@@ -57,6 +72,7 @@ export default function Login() {
                 keyboardType="email-address"
                 style={styles.input}
                 theme={{ colors: { primary: theme.colors.primary } }}
+                autoComplete="email" // Additional accessibility feature
             />
             <TextInput
                 mode="outlined"
@@ -67,11 +83,22 @@ export default function Login() {
                 secureTextEntry
                 style={styles.input}
                 theme={{ colors: { primary: theme.colors.primary } }}
+                autoComplete="password" // Additional accessibility feature
             />
-            <Button mode="contained" onPress={login} style={styles.button}>
+            <Button 
+                mode="contained" 
+                onPress={login} 
+                style={styles.button} 
+                loading={loading} // Show loading spinner
+                disabled={loading} // Disable button while loading
+            >
                 Login
             </Button>
-            <Button mode="text" onPress={() => navigation.navigate("Register")} style={styles.link}>
+            <Button 
+                mode="text" 
+                onPress={() => navigation.navigate("Registre")} 
+                style={styles.link}
+            >
                 Register
             </Button>
         </View>

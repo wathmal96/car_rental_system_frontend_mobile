@@ -1,33 +1,53 @@
 import React, { useState } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, Alert } from "react-native";
 import { TextInput, Button, useTheme } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
-// import createAxiosInstance from "../../service/axiosOrder";
+import createAxiosInstance from "../../service/axiosOrder"; // Ensure this is correctly imported
 
-export default function Registre() {
+export default function Register() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false); // Add loading state
     const navigation = useNavigation();
     const theme = useTheme();
 
     const register = async () => {
-        console.log("Email:", email);
-        console.log("Password:", password);
+        if (!name || !email || !password) {
+            Alert.alert("Validation Error", "Please fill in all fields.");
+            return;
+        }
 
-        // try {
-        //     const axiosInstance = await createAxiosInstance();
+        setLoading(true); // Set loading to true before making the request
 
-        //     const response = await axiosInstance.post('/register', {
-        //         name,
-        //         email,
-        //         password
-        //     });
+        try {
+            const axiosInstance = await createAxiosInstance();
+            const response = await axiosInstance.post('/customer/new', {
+                name,
+                email,
+                password
+            });
 
-        //     console.log("Response:", response.data);
-        // } catch (error) {
-        //     console.error("Error during registration:", error);
-        // }
+            Alert.alert("Success", "Registration successful!");
+            console.log("Response:", response.data);
+            navigation.navigate("Login2"); // Navigate to login screen upon successful registration
+        } catch (error) {
+            console.error("Error during registration:", error);
+
+            // Handle different types of errors
+            if (error.response) {
+                // Server responded with a status other than 2xx
+                Alert.alert("Registration Error", error.response.data.message || "An error occurred during registration.");
+            } else if (error.request) {
+                // No response was received
+                Alert.alert("Network Error", "No response received from the server. Please try again later.");
+            } else {
+                // Other errors
+                Alert.alert("Error", "An unexpected error occurred. Please try again.");
+            }
+        } finally {
+            setLoading(false); // Reset loading state
+        }
     };
 
     return (
@@ -64,10 +84,20 @@ export default function Registre() {
                 style={styles.input}
                 theme={{ colors: { primary: theme.colors.primary } }}
             />
-            <Button mode="contained" onPress={register} style={styles.button}>
+            <Button 
+                mode="contained" 
+                onPress={register} 
+                style={styles.button}
+                loading={loading} // Show loading spinner
+                disabled={loading} // Disable button while loading
+            >
                 Register
             </Button>
-            <Button mode="text" onPress={() => navigation.navigate("Login")} style={styles.link}>
+            <Button 
+                mode="text" 
+                onPress={() => navigation.navigate("Login")} 
+                style={styles.link}
+            >
                 Login
             </Button>
         </View>
