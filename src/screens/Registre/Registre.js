@@ -95,7 +95,7 @@ export default function Register() {
             </Button>
             <Button 
                 mode="text" 
-                onPress={() => navigation.navigate("Login")} 
+                onPress={() => navigation.navigate("Login2")} 
                 style={styles.link}
             >
                 Login
